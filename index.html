@@ -1,4 +1,20 @@
-<!doctype html>
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyAEUmslZSarZRtmFm9ShYu4Pb_vGKr6hUU",
+  authDomain: "footaball-6c9c6.firebaseapp.com",
+  projectId: "footaball-6c9c6",
+  storageBucket: "footaball-6c9c6.firebasestorage.app",
+  messagingSenderId: "13587756171",
+  appId: "1:13587756171:web:3208c11182dea556fd108e"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -593,6 +609,7 @@
           <p id="pageSubtitle">Manage availability, lineup, training, and squad notes from one screen.</p>
         </div>
         <div class="actions">
+          <span class="pill" id="syncStatus">Saved on this device</span>
           <button class="btn" type="button" id="markAllFit">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
             Mark all fit
@@ -706,8 +723,22 @@
     </main>
   </div>
 
-  <script>
-    const players = [
+  <script type="module">
+    const firebaseConfig = {
+      apiKey: "PASTE_FIREBASE_API_KEY",
+      authDomain: "PASTE_PROJECT_ID.firebaseapp.com",
+      projectId: "PASTE_PROJECT_ID",
+      storageBucket: "PASTE_PROJECT_ID.firebasestorage.app",
+      messagingSenderId: "PASTE_MESSAGING_SENDER_ID",
+      appId: "PASTE_APP_ID"
+    };
+
+    const firebaseTeamDoc = {
+      collection: "teams",
+      id: "river-city-u18"
+    };
+
+    const defaultPlayers = [
       { name: "Malik Johnson", position: "GK", status: "Fit", minutes: 720, rating: 7.4 },
       { name: "Rafael Cruz", position: "CB", status: "Fit", minutes: 685, rating: 7.8 },
       { name: "Owen Miller", position: "RB", status: "Monitor", minutes: 540, rating: 7.1 },
@@ -719,17 +750,24 @@
       { name: "Jaden Price", position: "RW", status: "Monitor", minutes: 510, rating: 7.5 }
     ];
 
-    const sessions = [
+    const defaultSessions = [
       ["Recovery", "Today, 5:00 PM", "Low load and mobility"],
       ["Pressing shape", "Wed, 4:30 PM", "Mid-block triggers"],
       ["Set pieces", "Fri, 3:45 PM", "Corners and free kicks"]
     ];
 
-    const tasks = [
+    const defaultTasks = [
       ["Confirm bus roster", "Due today"],
       ["Review Northside video", "Due Thursday"],
       ["Message parents", "Due Friday"]
     ];
+
+    const savedState = loadState();
+    const players = Array.isArray(savedState?.players) ? savedState.players : defaultPlayers.map(player => ({ ...player }));
+    const sessions = Array.isArray(savedState?.sessions) ? savedState.sessions : defaultSessions.map(session => [...session]);
+    const tasks = Array.isArray(savedState?.tasks) ? savedState.tasks : defaultTasks.map(task => [...task]);
+    let cloudSave = null;
+    let isApplyingCloudState = false;
 
     const rosterBody = document.querySelector("#rosterBody");
     const search = document.querySelector("#search");
@@ -737,6 +775,7 @@
     const trainingList = document.querySelector("#trainingList");
     const taskList = document.querySelector("#taskList");
     const formationSelect = document.querySelector("#formation");
+    const syncStatus = document.querySelector("#syncStatus");
 
     const formations = {
       "3-2-3": [
@@ -784,6 +823,113 @@
       ST: ["ST", "LW", "RW", "AM"],
       RW: ["RW", "LW", "ST", "AM"]
     };
+
+    if (savedState?.formation && formations[savedState.formation]) {
+      formationSelect.value = savedState.formation;
+    }
+
+    function loadState() {
+      try {
+        return JSON.parse(localStorage.getItem("footballCoachDashboard") || "null");
+      } catch {
+        return null;
+      }
+    }
+
+    function saveState() {
+      const state = currentState();
+      localStorage.setItem("footballCoachDashboard", JSON.stringify(state));
+
+      if (cloudSave && !isApplyingCloudState) {
+        cloudSave(state);
+      }
+    }
+
+    function currentState() {
+      return {
+        players,
+        sessions,
+        tasks,
+        formation: formationSelect.value
+      };
+    }
+
+    function applyState(state) {
+      if (!state) return;
+
+      if (Array.isArray(state.players)) {
+        players.splice(0, players.length, ...state.players);
+      }
+
+      if (Array.isArray(state.sessions)) {
+        sessions.splice(0, sessions.length, ...state.sessions);
+      }
+
+      if (Array.isArray(state.tasks)) {
+        tasks.splice(0, tasks.length, ...state.tasks);
+      }
+
+      if (state.formation && formations[state.formation]) {
+        formationSelect.value = state.formation;
+      }
+
+      localStorage.setItem("footballCoachDashboard", JSON.stringify(currentState()));
+      renderRoster();
+      renderList(trainingList, sessions, '<path d="M6 4v16M18 4v16M6 8h12M6 16h12"/>');
+      renderList(taskList, tasks, '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>');
+    }
+
+    function firebaseConfigured() {
+      return firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith("PASTE_") &&
+        firebaseConfig.projectId && !firebaseConfig.projectId.startsWith("PASTE_");
+    }
+
+    async function connectFirebase() {
+      if (!firebaseConfigured()) {
+        syncStatus.textContent = "Saved on this device";
+        return;
+      }
+
+      syncStatus.textContent = "Connecting cloud";
+
+      try {
+        const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js");
+        const { getFirestore, doc, getDoc, onSnapshot, setDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js");
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const teamRef = doc(db, firebaseTeamDoc.collection, firebaseTeamDoc.id);
+
+        cloudSave = async state => {
+          syncStatus.textContent = "Saving cloud";
+          await setDoc(teamRef, {
+            ...state,
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+          syncStatus.textContent = "Cloud saved";
+        };
+
+        const existing = await getDoc(teamRef);
+        if (existing.exists()) {
+          isApplyingCloudState = true;
+          applyState(existing.data());
+          isApplyingCloudState = false;
+        } else {
+          await cloudSave(currentState());
+        }
+
+        onSnapshot(teamRef, snapshot => {
+          if (!snapshot.exists()) return;
+          isApplyingCloudState = true;
+          applyState(snapshot.data());
+          isApplyingCloudState = false;
+          syncStatus.textContent = "Cloud synced";
+        });
+      } catch (error) {
+        console.error(error);
+        syncStatus.textContent = "Cloud setup needed";
+      }
+    }
 
     function initials(name) {
       return name.split(" ").map(part => part[0]).join("").slice(0, 2).toUpperCase();
@@ -899,17 +1045,20 @@
         const player = players[Number(statusButton.dataset.status)];
         const order = ["Fit", "Monitor", "Injured"];
         player.status = order[(order.indexOf(player.status) + 1) % order.length];
+        saveState();
         renderRoster();
       }
 
       if (boostButton) {
         const player = players[Number(boostButton.dataset.boost)];
         player.rating = Math.min(10, Number((player.rating + 0.1).toFixed(1)));
+        saveState();
         renderRoster();
       }
 
       if (deleteButton) {
         players.splice(Number(deleteButton.dataset.delete), 1);
+        saveState();
         renderRoster();
       }
     });
@@ -927,14 +1076,19 @@
       });
       form.reset();
       document.querySelector("#rating").value = "7.0";
+      saveState();
       renderRoster();
     });
 
     search.addEventListener("input", renderRoster);
-    formationSelect.addEventListener("change", renderLineup);
+    formationSelect.addEventListener("change", () => {
+      saveState();
+      renderLineup();
+    });
 
     document.querySelector("#markAllFit").addEventListener("click", () => {
       players.forEach(player => player.status = "Fit");
+      saveState();
       renderRoster();
     });
 
@@ -944,11 +1098,13 @@
 
     document.querySelector("#addSession").addEventListener("click", () => {
       sessions.unshift(["Tactical review", "New session", "Coach notes"]);
+      saveState();
       renderList(trainingList, sessions, '<path d="M6 4v16M18 4v16M6 8h12M6 16h12"/>');
     });
 
     document.querySelector("#addTask").addEventListener("click", () => {
       tasks.unshift(["New staff task", "Set a due date"]);
+      saveState();
       renderList(taskList, tasks, '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>');
     });
 
@@ -973,6 +1129,7 @@
     renderRoster();
     renderList(trainingList, sessions, '<path d="M6 4v16M18 4v16M6 8h12M6 16h12"/>');
     renderList(taskList, tasks, '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>');
+    connectFirebase();
   </script>
 </body>
 </html>
