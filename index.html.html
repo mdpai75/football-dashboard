@@ -1,0 +1,1119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Football Coach Dashboard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #182024;
+      --muted: #617077;
+      --line: #d9e2df;
+      --panel: #ffffff;
+      --bg: #f2f5f1;
+      --grass: #28704f;
+      --grass-dark: #205a44;
+      --gold: #d6a847;
+      --red: #c94e49;
+      --blue: #326f9f;
+      --shadow: 0 12px 28px rgba(33, 48, 43, .1);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    button, input, select, textarea { font: inherit; }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      color: inherit;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 248px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    aside {
+      background: #17221f;
+      color: #eef5ef;
+      padding: 24px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .crest {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.22), transparent 42%),
+        var(--grass);
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      color: white;
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.18);
+      flex: 0 0 auto;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .brand span {
+      display: block;
+      margin-top: 4px;
+      color: #a9bbb2;
+      font-size: 12px;
+    }
+
+    nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav-button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      background: transparent;
+      color: #c7d6cf;
+      text-align: left;
+    }
+
+    .nav-button.active,
+    .nav-button:hover {
+      background: #243630;
+      color: #ffffff;
+    }
+
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+      display: grid;
+      place-items: center;
+      color: var(--gold);
+      flex: 0 0 auto;
+    }
+
+    .season-card {
+      margin-top: auto;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 8px;
+      padding: 14px;
+      background: rgba(255,255,255,.06);
+    }
+
+    .season-card strong {
+      display: block;
+      font-size: 13px;
+    }
+
+    .season-card p {
+      margin: 8px 0 0;
+      color: #adbbb5;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    main {
+      padding: 24px;
+      overflow: hidden;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .title-block h2 {
+      margin: 0;
+      font-size: clamp(24px, 4vw, 34px);
+      letter-spacing: 0;
+    }
+
+    .title-block p {
+      margin: 6px 0 0;
+      color: var(--muted);
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      min-height: 40px;
+      border-radius: 8px;
+      padding: 0 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #e4ebe7;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .btn.primary {
+      background: var(--grass);
+      color: white;
+    }
+
+    .btn.warn {
+      background: #f8e2de;
+      color: #903935;
+    }
+
+    .icon {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(320px, .8fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .stat {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .stat strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 26px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      min-height: 58px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-head h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .formation-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .formation-control select {
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 34px 0 10px;
+      background: #f8faf8;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .search {
+      width: min(260px, 100%);
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 12px;
+      background: #f8faf8;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      background: #f8faf8;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .player {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 170px;
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: #dfe9e2;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      color: #243630;
+      flex: 0 0 auto;
+    }
+
+    .player strong, .player span {
+      display: block;
+    }
+
+    .player span {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 26px;
+      border-radius: 999px;
+      padding: 0 10px;
+      font-size: 12px;
+      font-weight: 800;
+      background: #e7eee9;
+      color: #31403a;
+      white-space: nowrap;
+    }
+
+    .fit { background: #dcf2e5; color: #23633f; }
+    .monitor { background: #fff0cf; color: #84601a; }
+    .injured { background: #f9dddd; color: #923632; }
+
+    .row-actions {
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: #eef3f0;
+      display: inline-grid;
+      place-items: center;
+    }
+
+    .side-stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .pitch {
+      position: relative;
+      min-height: 390px;
+      background:
+        repeating-linear-gradient(90deg, rgba(255,255,255,.04) 0 48px, transparent 48px 96px),
+        linear-gradient(135deg, var(--grass), var(--grass-dark));
+      border-radius: 0;
+      overflow: hidden;
+      color: white;
+    }
+
+    .pitch::before {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border: 2px solid rgba(255,255,255,.55);
+      border-radius: 2px;
+    }
+
+    .pitch::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 18px;
+      right: 18px;
+      border-top: 2px solid rgba(255,255,255,.45);
+    }
+
+    .circle {
+      position: absolute;
+      width: 96px;
+      height: 96px;
+      border: 2px solid rgba(255,255,255,.45);
+      border-radius: 50%;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .slot {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      width: 74px;
+      min-height: 46px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.92);
+      color: #17221f;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 6px;
+      font-size: 12px;
+      font-weight: 900;
+      z-index: 2;
+      box-shadow: 0 8px 18px rgba(0,0,0,.18);
+    }
+
+    .slot small {
+      display: block;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+    }
+
+    .item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfb;
+    }
+
+    .item-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: #e7eee9;
+      color: var(--grass);
+    }
+
+    .item strong { display: block; font-size: 14px; }
+    .item span { color: var(--muted); font-size: 12px; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      padding: 14px;
+      border-top: 1px solid var(--line);
+      background: #f8faf8;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .field input,
+    .field select {
+      min-width: 0;
+      height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 10px;
+      background: white;
+    }
+
+    .form-grid .wide { grid-column: 1 / -1; }
+
+    .empty {
+      padding: 22px 14px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 1040px) {
+      .shell { grid-template-columns: 1fr; }
+      aside {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        flex-direction: row;
+        align-items: center;
+        overflow-x: auto;
+        padding: 14px;
+      }
+      nav { display: flex; }
+      .nav-button { width: auto; white-space: nowrap; }
+      .season-card { display: none; }
+      .grid, .stats { grid-template-columns: 1fr; }
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .actions { justify-content: flex-start; }
+    }
+
+    @media (max-width: 720px) {
+      main { padding: 16px; }
+      .brand h1 { font-size: 16px; }
+      .panel-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .search { width: 100%; }
+      .table-wrap { overflow-x: auto; }
+      table { min-width: 700px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .pitch { min-height: 330px; }
+      .slot { width: 62px; font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <div class="brand">
+        <div class="crest">FC</div>
+        <div>
+          <h1>Coach Room</h1>
+          <span>River City U18</span>
+        </div>
+      </div>
+
+      <nav aria-label="Dashboard sections">
+        <button class="nav-button active" type="button" data-section="overview">
+          <span class="nav-icon" aria-hidden="true">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 13h6V4H4zM14 20h6V4h-6zM4 20h6v-3H4z"/></svg>
+          </span>
+          Overview
+        </button>
+        <button class="nav-button" type="button" data-section="roster">
+          <span class="nav-icon" aria-hidden="true">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </span>
+          Roster
+        </button>
+        <button class="nav-button" type="button" data-section="lineup">
+          <span class="nav-icon" aria-hidden="true">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="3"/></svg>
+          </span>
+          Lineup
+        </button>
+        <button class="nav-button" type="button" data-section="training">
+          <span class="nav-icon" aria-hidden="true">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4v16M18 4v16M6 8h12M6 16h12"/></svg>
+          </span>
+          Training
+        </button>
+      </nav>
+
+      <div class="season-card">
+        <strong>Next match</strong>
+        <p>Saturday, 3:30 PM<br>Home vs Northside Academy</p>
+      </div>
+    </aside>
+
+    <main>
+      <div class="topbar">
+        <div class="title-block">
+          <h2 id="pageTitle">Team Overview</h2>
+          <p id="pageSubtitle">Manage availability, lineup, training, and squad notes from one screen.</p>
+        </div>
+        <div class="actions">
+          <span class="pill" id="syncStatus">Saved on this device</span>
+          <button class="btn" type="button" id="markAllFit">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+            Mark all fit
+          </button>
+          <button class="btn primary" type="button" id="focusAdd">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            Add player
+          </button>
+        </div>
+      </div>
+
+      <section class="stats" aria-label="Team statistics">
+        <div class="stat"><span>Players</span><strong id="statPlayers">0</strong></div>
+        <div class="stat"><span>Available</span><strong id="statFit">0</strong></div>
+        <div class="stat"><span>Monitor</span><strong id="statMonitor">0</strong></div>
+        <div class="stat"><span>Avg rating</span><strong id="statRating">0.0</strong></div>
+      </section>
+
+      <div class="grid">
+        <section class="panel" id="rosterPanel">
+          <div class="panel-head">
+            <h3>Squad List</h3>
+            <input class="search" id="search" type="search" placeholder="Search player or position">
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Player</th>
+                  <th>Pos</th>
+                  <th>Status</th>
+                  <th>Minutes</th>
+                  <th>Rating</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="rosterBody"></tbody>
+            </table>
+          </div>
+          <form class="form-grid" id="playerForm">
+            <div class="field">
+              <label for="name">Name</label>
+              <input id="name" required placeholder="Player name">
+            </div>
+            <div class="field">
+              <label for="position">Position</label>
+              <select id="position">
+                <option>GK</option><option>LB</option><option>CB</option><option>RB</option>
+                <option>DM</option><option>CM</option><option>AM</option>
+                <option>LW</option><option>ST</option><option>RW</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="status">Status</label>
+              <select id="status">
+                <option>Fit</option><option>Monitor</option><option>Injured</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="rating">Rating</label>
+              <input id="rating" type="number" min="1" max="10" step=".1" value="7.0">
+            </div>
+            <button class="btn primary wide" type="submit">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+              Add to squad
+            </button>
+          </form>
+        </section>
+
+        <div class="side-stack">
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Starting Lineup</h3>
+              <div class="formation-control">
+                <span class="pill" id="playerCount">9 players</span>
+                <select id="formation" aria-label="Formation">
+                  <option value="3-2-3">3-2-3</option>
+                  <option value="4-3-3">4-3-3</option>
+                  <option value="4-4-2">4-4-2</option>
+                  <option value="3-5-2">3-5-2</option>
+                  <option value="4-2-3-1">4-2-3-1</option>
+                </select>
+              </div>
+            </div>
+            <div class="pitch" aria-label="Football pitch lineup">
+              <div class="circle"></div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Training Plan</h3>
+              <button class="icon-btn" id="addSession" type="button" aria-label="Add session">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+              </button>
+            </div>
+            <div class="list" id="trainingList"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Coach Tasks</h3>
+              <button class="icon-btn" id="addTask" type="button" aria-label="Add task">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+              </button>
+            </div>
+            <div class="list" id="taskList"></div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    const firebaseConfig = {
+      apiKey: "AIzaSyAEUmslZSarZRtmFm9ShYu4Pb_vGKr6hUU",
+      authDomain: "footaball-6c9c6.firebaseapp.com",
+      projectId: "footaball-6c9c6",
+      storageBucket: "footaball-6c9c6.firebasestorage.app",
+      messagingSenderId: "13587756171",
+      appId: "1:13587756171:web:3208c11182dea556fd108e"
+    };
+
+    const firebaseTeamDoc = {
+      collection: "teams",
+      id: "river-city-u18"
+    };
+
+    const defaultPlayers = [
+      { name: "Malik Johnson", position: "GK", status: "Fit", minutes: 720, rating: 7.4 },
+      { name: "Rafael Cruz", position: "CB", status: "Fit", minutes: 685, rating: 7.8 },
+      { name: "Owen Miller", position: "RB", status: "Monitor", minutes: 540, rating: 7.1 },
+      { name: "Theo Brooks", position: "LB", status: "Fit", minutes: 615, rating: 7.2 },
+      { name: "Samir Patel", position: "CM", status: "Fit", minutes: 702, rating: 8.1 },
+      { name: "Eli Walker", position: "CM", status: "Fit", minutes: 488, rating: 7.3 },
+      { name: "Noah Reed", position: "LW", status: "Injured", minutes: 430, rating: 7.0 },
+      { name: "Luis Moreno", position: "ST", status: "Fit", minutes: 665, rating: 8.4 },
+      { name: "Jaden Price", position: "RW", status: "Monitor", minutes: 510, rating: 7.5 }
+    ];
+
+    const defaultSessions = [
+      ["Recovery", "Today, 5:00 PM", "Low load and mobility"],
+      ["Pressing shape", "Wed, 4:30 PM", "Mid-block triggers"],
+      ["Set pieces", "Fri, 3:45 PM", "Corners and free kicks"]
+    ];
+
+    const defaultTasks = [
+      ["Confirm bus roster", "Due today"],
+      ["Review Northside video", "Due Thursday"],
+      ["Message parents", "Due Friday"]
+    ];
+
+    const savedState = loadState();
+    const players = Array.isArray(savedState?.players) ? savedState.players : defaultPlayers.map(player => ({ ...player }));
+    const sessions = Array.isArray(savedState?.sessions) ? savedState.sessions : defaultSessions.map(session => [...session]);
+    const tasks = Array.isArray(savedState?.tasks) ? savedState.tasks : defaultTasks.map(task => [...task]);
+    let cloudSave = null;
+    let isApplyingCloudState = false;
+
+    const rosterBody = document.querySelector("#rosterBody");
+    const search = document.querySelector("#search");
+    const form = document.querySelector("#playerForm");
+    const trainingList = document.querySelector("#trainingList");
+    const taskList = document.querySelector("#taskList");
+    const formationSelect = document.querySelector("#formation");
+    const syncStatus = document.querySelector("#syncStatus");
+
+    const formations = {
+      "3-2-3": [
+        ["GK", 50, 90],
+        ["LB", 20, 70], ["CB", 50, 68], ["RB", 80, 70],
+        ["CM", 34, 46], ["CM", 66, 46],
+        ["LW", 22, 24], ["ST", 50, 18], ["RW", 78, 24]
+      ],
+      "4-3-3": [
+        ["GK", 50, 90],
+        ["LB", 15, 72], ["CB", 38, 70], ["CB", 62, 70], ["RB", 85, 72],
+        ["CM", 28, 48], ["DM", 50, 54], ["CM", 72, 48],
+        ["LW", 20, 24], ["ST", 50, 18], ["RW", 80, 24]
+      ],
+      "4-4-2": [
+        ["GK", 50, 90],
+        ["LB", 15, 72], ["CB", 38, 70], ["CB", 62, 70], ["RB", 85, 72],
+        ["LW", 18, 46], ["CM", 39, 50], ["CM", 61, 50], ["RW", 82, 46],
+        ["ST", 40, 20], ["ST", 60, 20]
+      ],
+      "3-5-2": [
+        ["GK", 50, 90],
+        ["CB", 26, 70], ["CB", 50, 68], ["CB", 74, 70],
+        ["LW", 14, 48], ["CM", 34, 50], ["DM", 50, 55], ["CM", 66, 50], ["RW", 86, 48],
+        ["ST", 40, 20], ["ST", 60, 20]
+      ],
+      "4-2-3-1": [
+        ["GK", 50, 90],
+        ["LB", 15, 72], ["CB", 38, 70], ["CB", 62, 70], ["RB", 85, 72],
+        ["DM", 38, 55], ["DM", 62, 55],
+        ["LW", 20, 36], ["AM", 50, 34], ["RW", 80, 36],
+        ["ST", 50, 18]
+      ]
+    };
+
+    const compatiblePositions = {
+      GK: ["GK"],
+      LB: ["LB", "CB", "RB"],
+      CB: ["CB", "LB", "RB", "DM"],
+      RB: ["RB", "CB", "LB"],
+      DM: ["DM", "CM", "CB"],
+      CM: ["CM", "DM", "AM"],
+      AM: ["AM", "CM", "ST"],
+      LW: ["LW", "RW", "ST", "AM"],
+      ST: ["ST", "LW", "RW", "AM"],
+      RW: ["RW", "LW", "ST", "AM"]
+    };
+
+    if (savedState?.formation && formations[savedState.formation]) {
+      formationSelect.value = savedState.formation;
+    }
+
+    function loadState() {
+      try {
+        return JSON.parse(localStorage.getItem("footballCoachDashboard") || "null");
+      } catch {
+        return null;
+      }
+    }
+
+    function saveState() {
+      const state = currentState();
+      localStorage.setItem("footballCoachDashboard", JSON.stringify(state));
+
+      if (cloudSave && !isApplyingCloudState) {
+        cloudSave(state);
+      }
+    }
+
+    function currentState() {
+      return {
+        players,
+        sessions,
+        tasks,
+        formation: formationSelect.value
+      };
+    }
+
+    function applyState(state) {
+      if (!state) return;
+
+      if (Array.isArray(state.players)) {
+        players.splice(0, players.length, ...state.players);
+      }
+
+      if (Array.isArray(state.sessions)) {
+        sessions.splice(0, sessions.length, ...state.sessions);
+      }
+
+      if (Array.isArray(state.tasks)) {
+        tasks.splice(0, tasks.length, ...state.tasks);
+      }
+
+      if (state.formation && formations[state.formation]) {
+        formationSelect.value = state.formation;
+      }
+
+      localStorage.setItem("footballCoachDashboard", JSON.stringify(currentState()));
+      renderRoster();
+      renderList(trainingList, sessions, '<path d="M6 4v16M18 4v16M6 8h12M6 16h12"/>');
+      renderList(taskList, tasks, '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>');
+    }
+
+    function firebaseConfigured() {
+      return firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith("PASTE_") &&
+        firebaseConfig.projectId && !firebaseConfig.projectId.startsWith("PASTE_");
+    }
+
+    async function connectFirebase() {
+      if (!firebaseConfigured()) {
+        syncStatus.textContent = "Saved on this device";
+        return;
+      }
+
+      syncStatus.textContent = "Connecting cloud";
+
+      try {
+        const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js");
+        const { getFirestore, doc, getDoc, onSnapshot, setDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js");
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const teamRef = doc(db, firebaseTeamDoc.collection, firebaseTeamDoc.id);
+
+        cloudSave = async state => {
+          syncStatus.textContent = "Saving cloud";
+          await setDoc(teamRef, {
+            ...state,
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+          syncStatus.textContent = "Cloud saved";
+        };
+
+        const existing = await getDoc(teamRef);
+        if (existing.exists()) {
+          isApplyingCloudState = true;
+          applyState(existing.data());
+          isApplyingCloudState = false;
+        } else {
+          await cloudSave(currentState());
+        }
+
+        onSnapshot(teamRef, snapshot => {
+          if (!snapshot.exists()) return;
+          isApplyingCloudState = true;
+          applyState(snapshot.data());
+          isApplyingCloudState = false;
+          syncStatus.textContent = "Cloud synced";
+        });
+      } catch (error) {
+        console.error(error);
+        syncStatus.textContent = "Cloud setup needed";
+      }
+    }
+
+    function initials(name) {
+      return name.split(" ").map(part => part[0]).join("").slice(0, 2).toUpperCase();
+    }
+
+    function statusClass(status) {
+      return status.toLowerCase();
+    }
+
+    function renderRoster() {
+      const term = search.value.trim().toLowerCase();
+      const visible = players
+        .map((player, index) => ({ ...player, index }))
+        .filter(player =>
+          player.name.toLowerCase().includes(term) ||
+          player.position.toLowerCase().includes(term) ||
+          player.status.toLowerCase().includes(term)
+        );
+
+      rosterBody.innerHTML = visible.map(player => `
+        <tr>
+          <td>
+            <div class="player">
+              <div class="avatar">${initials(player.name)}</div>
+              <div><strong>${player.name}</strong><span>${player.minutes} season minutes</span></div>
+            </div>
+          </td>
+          <td><span class="pill">${player.position}</span></td>
+          <td><button class="pill ${statusClass(player.status)}" type="button" data-status="${player.index}">${player.status}</button></td>
+          <td>${player.minutes}</td>
+          <td>${player.rating.toFixed(1)}</td>
+          <td>
+            <div class="row-actions">
+              <button class="icon-btn" type="button" data-boost="${player.index}" aria-label="Improve rating">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 15 6-6 6 6"/></svg>
+              </button>
+              <button class="icon-btn" type="button" data-delete="${player.index}" aria-label="Remove player">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M10 11v6M14 11v6M6 6l1 14h10l1-14"/></svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join("");
+
+      if (!visible.length) {
+        rosterBody.innerHTML = `<tr><td colspan="6" class="empty">No players match that search.</td></tr>`;
+      }
+
+      updateStats();
+      renderLineup();
+    }
+
+    function updateStats() {
+      const fit = players.filter(player => player.status === "Fit").length;
+      const monitor = players.filter(player => player.status === "Monitor").length;
+      const avg = players.length ? players.reduce((sum, player) => sum + player.rating, 0) / players.length : 0;
+      document.querySelector("#statPlayers").textContent = players.length;
+      document.querySelector("#statFit").textContent = fit;
+      document.querySelector("#statMonitor").textContent = monitor;
+      document.querySelector("#statRating").textContent = avg.toFixed(1);
+    }
+
+    function renderLineup() {
+      const used = new Set();
+      const shape = formations[formationSelect.value] || formations["3-2-3"];
+      const pitch = document.querySelector(".pitch");
+      pitch.querySelectorAll(".slot").forEach(slot => slot.remove());
+      document.querySelector("#playerCount").textContent = `${shape.length} players`;
+
+      shape.forEach(([role, left, top]) => {
+        const slot = document.createElement("div");
+        slot.className = "slot";
+        slot.dataset.role = role;
+        slot.style.left = `${left}%`;
+        slot.style.top = `${top}%`;
+
+        const options = compatiblePositions[role] || [role];
+        const pick = players
+          .map((player, index) => ({ ...player, index }))
+          .filter(player => player.status !== "Injured" && options.includes(player.position) && !used.has(player.index))
+          .map(player => ({ ...player, fitScore: player.position === role ? 1 : 0 }))
+          .sort((a, b) => b.fitScore - a.fitScore || b.rating - a.rating)[0];
+
+        if (pick) {
+          used.add(pick.index);
+          slot.innerHTML = `${pick.name.split(" ").at(-1)}<small>${role}</small>`;
+        } else {
+          slot.innerHTML = `Open<small>${role}</small>`;
+        }
+
+        pitch.appendChild(slot);
+      });
+    }
+
+    function renderList(target, items, iconPath) {
+      target.innerHTML = items.map(item => `
+        <div class="item">
+          <div class="item-icon">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${iconPath}</svg>
+          </div>
+          <div><strong>${item[0]}</strong><span>${item[1]}</span></div>
+          <span class="pill">${item[2] || "Open"}</span>
+        </div>
+      `).join("");
+    }
+
+    rosterBody.addEventListener("click", event => {
+      const statusButton = event.target.closest("[data-status]");
+      const boostButton = event.target.closest("[data-boost]");
+      const deleteButton = event.target.closest("[data-delete]");
+
+      if (statusButton) {
+        const player = players[Number(statusButton.dataset.status)];
+        const order = ["Fit", "Monitor", "Injured"];
+        player.status = order[(order.indexOf(player.status) + 1) % order.length];
+        saveState();
+        renderRoster();
+      }
+
+      if (boostButton) {
+        const player = players[Number(boostButton.dataset.boost)];
+        player.rating = Math.min(10, Number((player.rating + 0.1).toFixed(1)));
+        saveState();
+        renderRoster();
+      }
+
+      if (deleteButton) {
+        players.splice(Number(deleteButton.dataset.delete), 1);
+        saveState();
+        renderRoster();
+      }
+    });
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      const name = document.querySelector("#name").value.trim();
+      if (!name) return;
+      players.push({
+        name,
+        position: document.querySelector("#position").value,
+        status: document.querySelector("#status").value,
+        minutes: 0,
+        rating: Number(document.querySelector("#rating").value || 7)
+      });
+      form.reset();
+      document.querySelector("#rating").value = "7.0";
+      saveState();
+      renderRoster();
+    });
+
+    search.addEventListener("input", renderRoster);
+    formationSelect.addEventListener("change", () => {
+      saveState();
+      renderLineup();
+    });
+
+    document.querySelector("#markAllFit").addEventListener("click", () => {
+      players.forEach(player => player.status = "Fit");
+      saveState();
+      renderRoster();
+    });
+
+    document.querySelector("#focusAdd").addEventListener("click", () => {
+      document.querySelector("#name").focus();
+    });
+
+    document.querySelector("#addSession").addEventListener("click", () => {
+      sessions.unshift(["Tactical review", "New session", "Coach notes"]);
+      saveState();
+      renderList(trainingList, sessions, '<path d="M6 4v16M18 4v16M6 8h12M6 16h12"/>');
+    });
+
+    document.querySelector("#addTask").addEventListener("click", () => {
+      tasks.unshift(["New staff task", "Set a due date"]);
+      saveState();
+      renderList(taskList, tasks, '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>');
+    });
+
+    document.querySelectorAll(".nav-button").forEach(button => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".nav-button").forEach(item => item.classList.remove("active"));
+        button.classList.add("active");
+        const section = button.dataset.section;
+        const titles = {
+          overview: ["Team Overview", "Manage availability, lineup, training, and squad notes from one screen."],
+          roster: ["Roster Management", "Update status, ratings, minutes, and add players to the squad."],
+          lineup: ["Lineup Planner", "The pitch auto-selects fit players by position and rating."],
+          training: ["Training Schedule", "Keep sessions and staff tasks visible before match day."]
+        };
+        document.querySelector("#pageTitle").textContent = titles[section][0];
+        document.querySelector("#pageSubtitle").textContent = titles[section][1];
+        const target = section === "lineup" ? ".pitch" : section === "training" ? "#trainingList" : "#rosterPanel";
+        document.querySelector(target).scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+
+    renderRoster();
+    renderList(trainingList, sessions, '<path d="M6 4v16M18 4v16M6 8h12M6 16h12"/>');
+    renderList(taskList, tasks, '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>');
+    connectFirebase();
+  </script>
+</body>
+</html>
